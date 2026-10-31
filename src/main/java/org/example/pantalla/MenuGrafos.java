@@ -1,12 +1,14 @@
 package org.example.pantalla;
 
 import org.example.Excepciones.GrafoException;
-import org.example.Grafo;
+import org.example.clases.Grafo;
+import org.example.clases.Vertice;
 import org.example.interfaz.IGrafo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 
 /**
@@ -79,12 +81,14 @@ public class MenuGrafos {
         System.out.println("10. Imprimir vértices adyacentes");
         System.out.println("11. Imprimir matriz de adyacencia");
         System.out.println("12. Imprimir número de vértices y aristas");
+        System.out.println("13. Búsqueda por anchura (BFS");
+        System.out.println("14. Búsqueda por profundidad (DFS)");
         System.out.println(" 0. Salir");
     }
 
     private void ejecutar(int opcion) {
         // Las opciones 4 a 12 necesitan un grafo activo
-        if (opcion >= 4 && opcion <= 12 && activo == null) {
+        if (opcion >= 4 && opcion <= 14 && activo == null) {
             System.out.println("Primero crea o selecciona un grafo (opciones 1 o 2).");
             return;
         }
@@ -102,6 +106,8 @@ public class MenuGrafos {
             case 10 -> imprimirAdyacentes();
             case 11 -> System.out.println(activo.grafo.imprimirMatriz());
             case 12 -> imprimirConteos();
+            case 13 -> ejecutarBusquedaAnchura();
+            case 14 -> ejecutarBusquedaProfundidad();
             case 0 -> { }
             default -> System.out.println("Opción no válida.");
         }
@@ -177,20 +183,20 @@ public class MenuGrafos {
     // ------------------------------------------------------------------
 
     private void insertarVertice() {
-        String nombre = leerTexto("Nombre del vértice: ");
-        activo.grafo.insertarVertice(nombre);
+        Vertice vertice = leerVertice("Nombre del vértice: ");
+        activo.grafo.insertarVertice(vertice);
         System.out.println("Vértice insertado.");
     }
 
     private void eliminarVertice() {
-        String nombre = leerTexto("Nombre del vértice a eliminar: ");
-        activo.grafo.eliminarVertice(nombre);
+        Vertice vertice = leerVertice("Nombre del vértice a eliminar: ");
+        activo.grafo.eliminarVertice(vertice);
         System.out.println("Vértice eliminado.");
     }
 
     private void insertarArista() {
-        String origen = leerTexto("Vértice origen: ");
-        String destino = leerTexto("Vértice destino: ");
+        Vertice origen = leerVertice("Vértice origen: ");
+        Vertice destino = leerVertice("Vértice destino: ");
         double peso = 1.0;
         if (activo.ponderado) {
             peso = leerDouble("Peso de la arista: ");
@@ -200,8 +206,8 @@ public class MenuGrafos {
     }
 
     private void eliminarArista() {
-        String origen = leerTexto("Vértice origen: ");
-        String destino = leerTexto("Vértice destino: ");
+        Vertice origen = leerVertice("Vértice origen: ");
+        Vertice destino = leerVertice("Vértice destino: ");
         activo.grafo.eliminarArista(origen, destino);
         System.out.println("Arista eliminada.");
     }
@@ -211,15 +217,15 @@ public class MenuGrafos {
             System.out.println("El grafo activo no es ponderado.");
             return;
         }
-        String origen = leerTexto("Vértice origen: ");
-        String destino = leerTexto("Vértice destino: ");
+        Vertice origen = leerVertice("Vértice origen: ");
+        Vertice destino = leerVertice("Vértice destino: ");
         double peso = leerDouble("Nuevo peso: ");
         activo.grafo.actualizarPeso(origen, destino, peso);
         System.out.println("Peso actualizado.");
     }
 
     private void imprimirGrado() {
-        String vertice = leerTexto("Vértice: ");
+        Vertice vertice = leerVertice("Vértice: ");
         if (activo.dirigido) {
             System.out.println("Grado de entrada: " + activo.grafo.gradoEntrada(vertice));
             System.out.println("Grado de salida:  " + activo.grafo.gradoSalida(vertice));
@@ -230,18 +236,65 @@ public class MenuGrafos {
     }
 
     private void imprimirAdyacentes() {
-        String vertice = leerTexto("Vértice: ");
-        List<String> ady = activo.grafo.adyacentes(vertice);
+        Vertice vertice = leerVertice("Vértice: ");
+        List<Vertice> ady = activo.grafo.adyacentes(vertice);
         if (ady.isEmpty()) {
-            System.out.println("Adyacentes de " + vertice + ": (ninguno)");
+            System.out.println("Adyacentes de " + vertice.getNombre() + ": (ninguno)");
         } else {
-            System.out.println("Adyacentes de " + vertice + ": " + String.join(", ", ady));
+            String nombres = ady.stream()
+                    .map(Vertice::getNombre)
+                    .collect(Collectors.joining(", "));
+            System.out.println("Adyacentes de " + vertice.getNombre() + ": " + nombres);
         }
     }
 
     private void imprimirConteos() {
         System.out.println("Número de vértices: " + activo.grafo.numVertices());
         System.out.println("Número de aristas:  " + activo.grafo.numAristas());
+    }
+
+    // ------------------------------------------------------------------
+    // Búsquedas BFS y DFS
+    // ------------------------------------------------------------------
+
+    private void ejecutarBusquedaAnchura() {
+        Vertice origen = leerVertice("Vértice origen del recorrido: ");
+        List<Vertice> orden = activo.grafo.busquedaAnchura(origen);
+
+        System.out.println("Orden de visita (BFS): " + nombresEnOrden(orden));
+        System.out.println();
+        System.out.printf("%-10s %-8s %-12s %-9s%n", "Vértice", "Color", "Predecesor", "Distancia");
+        for (Vertice v : orden) {
+            System.out.printf("%-10s %-8s %-12s %-9d%n",
+                    v.getNombre(), v.getColor(), nombrePredecesor(v), v.getDistancia());
+        }
+    }
+
+    private void ejecutarBusquedaProfundidad() {
+        Vertice origen = leerVertice("Vértice origen del recorrido: ");
+        List<Vertice> orden = activo.grafo.busquedaProfundidad(origen);
+
+        System.out.println("Orden de visita (DFS): " + nombresEnOrden(orden));
+        System.out.println();
+        System.out.printf("%-10s %-8s %-12s %-8s %-8s%n",
+                "Vértice", "Color", "Predecesor", "Entrada", "Salida");
+        for (Vertice v : orden) {
+            System.out.printf("%-10s %-8s %-12s %-8d %-8d%n",
+                    v.getNombre(), v.getColor(), nombrePredecesor(v),
+                    v.getTiempoEntrada(), v.getTiempoSalida());
+        }
+    }
+
+    /** Une los nombres de los vértices en el orden recibido: A -> B -> C. */
+    private String nombresEnOrden(List<Vertice> vertices) {
+        return vertices.stream()
+                .map(Vertice::getNombre)
+                .collect(Collectors.joining(" -> "));
+    }
+
+    /** Nombre del predecesor o "-" si no tiene. */
+    private String nombrePredecesor(Vertice v) {
+        return v.getPredecesor() == null ? "-" : v.getPredecesor().getNombre();
     }
 
     // ------------------------------------------------------------------
@@ -285,6 +338,11 @@ public class MenuGrafos {
             }
             System.out.println("No puede estar vacío.");
         }
+    }
+
+    /** Lee un nombre desde el teclado y lo convierte en un Vertice. */
+    private Vertice leerVertice(String mensaje) {
+        return new Vertice(leerTexto(mensaje));
     }
 
     private boolean leerSiNo(String mensaje) {
