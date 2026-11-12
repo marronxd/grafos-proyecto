@@ -8,7 +8,7 @@ import java.util.List;
  * autor aaron xavier burciaga alcantar 262788
  */
 
-public interface IGrafo  extends IBusquedaAnchura, IBusquedaProfundidad{
+public interface IGrafo  extends IBusquedaAnchura, IBusquedaProfundidad, IOrdenTopologico{
 
 
     /** Inserta un vértice y agrega una fila y una columna a la matriz. */
@@ -43,4 +43,5 @@ public interface IGrafo  extends IBusquedaAnchura, IBusquedaProfundidad{
 
     /** Número de aristas del grafo. */
     int numAristas();
+
 }
