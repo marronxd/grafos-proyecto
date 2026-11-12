@@ -538,4 +538,69 @@ public class Grafo implements IGrafo {
         vertice.setColor(Colores.NEGRO);
         vertice.setTiempoSalida(++tiempo[0]);    // el tiempo siguió corriendo mientras tanto
     }
+
+
+    // -- NOVEDAD PARA ORDEN TOPOLÓGICO
+
+
+    /**
+     * Ordenamiento topológico, es decir, un orden lineal para los no acíclicos
+     * @return
+     */
+    @Override
+    public List<Vertice> ordenTopologico() {
+
+        if(vertices.isEmpty()){
+            throw new GrafoException("No hay vértices.");
+        }
+
+        if(!this.esDirigido){
+            throw new GrafoException("No es un grafo dirigido.");
+        }
+
+        // CREACION DE LISTA EN ORDEN y NEXT
+        List<Vertice> ordenLineal = new ArrayList<>();
+        List<Vertice> siguiente = new ArrayList<>(); // gE = 0
+
+        // PARA HACER MAS FACIL EL GUARDADO DEL VERTICE Y SU GE
+        Map<Vertice, Integer> gradosEntrada = new HashMap<>();
+
+        // PARA NO EXCLUIR PARTES DEL GRAFO
+        for (Vertice v : vertices){
+            int grado = gradoEntrada(v);
+            gradosEntrada.put(v,grado);
+            if(grado == 0){
+                siguiente.add(v);
+            }
+        }
+
+        // Siguiente funciona como el motor que hace avanzar el recorrido
+        while(!siguiente.isEmpty()){
+
+            Vertice u = siguiente.remove(0);
+
+            ordenLineal.add(u);
+
+            // este es para ir visitando los vecinos de un vertice
+            // cada visita implica restarle un grado de entrada, significando
+            //
+            for(Vertice vecino : adyacentes(u)){
+
+                // u ya salió, al vecino le falta predecesor menos.
+                gradosEntrada.put(vecino, gradosEntrada.get(vecino) - 1);
+
+                // si sus grados de entrada son 0, ya no le faltan vecinos
+                // y se procesa.
+                if(gradosEntrada.get(vecino) == 0){
+                    siguiente.add(vecino);
+                }
+            }
+        }
+        // si el orden lineal tiene más vertices, quiere decir que se regresó
+        // y guardó 2 veces un vértice
+        if(ordenLineal.size() < vertices.size()){
+            throw new GrafoException("El grafo tiene un ciclo: no existe orden topológico.");
+        }
+        return ordenLineal;
+    }
 }

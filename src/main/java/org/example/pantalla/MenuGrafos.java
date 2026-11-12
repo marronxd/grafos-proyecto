@@ -83,6 +83,7 @@ public class MenuGrafos {
         System.out.println("12. Imprimir número de vértices y aristas");
         System.out.println("13. Búsqueda por anchura (BFS");
         System.out.println("14. Búsqueda por profundidad (DFS)");
+        System.out.println("15. Ordenamiento Topológico.");
         System.out.println(" 0. Salir");
     }
 
@@ -108,6 +109,7 @@ public class MenuGrafos {
             case 12 -> imprimirConteos();
             case 13 -> ejecutarBusquedaAnchura();
             case 14 -> ejecutarBusquedaProfundidad();
+            case 15 -> ejecutarOrdenTopologico();
             case 0 -> { }
             default -> System.out.println("Opción no válida.");
         }
@@ -295,6 +297,27 @@ public class MenuGrafos {
     /** Nombre del predecesor o "-" si no tiene. */
     private String nombrePredecesor(Vertice v) {
         return v.getPredecesor() == null ? "-" : v.getPredecesor().getNombre();
+    }
+    // ------------------------------------------------------------------
+    // Ordenamiento topológico
+    // ------------------------------------------------------------------
+
+    private void ejecutarOrdenTopologico(){
+        System.out.println("\n--- ORDENAMIENTO TOPOLÓGICO ---");
+        try {
+            List<Vertice> orden = activo.grafo.ordenTopologico();
+
+            System.out.print("Orden lineal: ");
+            for (int i = 0; i < orden.size(); i++) {
+                System.out.print(orden.get(i).getNombre());
+                if (i < orden.size() - 1) {
+                    System.out.print(" , ");
+                }
+            }
+            System.out.println();
+        } catch (GrafoException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 
     // ------------------------------------------------------------------
