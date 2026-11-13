@@ -603,4 +603,136 @@ public class Grafo implements IGrafo {
         }
         return ordenLineal;
     }
+
+
+    // ---------
+    // pa DAGS
+    // ---------
+
+    @Override
+    public List<Vertice> caminoMasCorto(Vertice origen) {
+
+        int posOrigen = vertices.indexOf(origen);
+        if(posOrigen == -1){
+            throw new GrafoException("Vertice inexistente.");
+        }
+
+        // llamar al orden topológico
+        List<Vertice> ordenLineal = ordenTopologico();
+
+        // crear el shortest
+        Map<Vertice, Double> shortest = new HashMap<>();
+        Map<Vertice, Vertice> pred = new HashMap<>();
+
+        for (Vertice v : ordenLineal) {
+            shortest.put(v, Double.POSITIVE_INFINITY);
+            pred.put(v, null);
+        }
+        shortest.put(origen, 0.0);
+
+        for(Vertice actual : ordenLineal){
+            for(Vertice vecino : adyacentes(actual)){
+                relajar(actual, vecino, shortest, pred);
+            }
+        }
+
+        // for para guardar los valores acumulativos del camino mas corto
+        // y del predecesor
+        for (Vertice v : ordenLineal) {
+            v.setCostoMinimo(shortest.get(v));    // pasa el costo del mapa al vértice
+            v.setPredecesor(pred.get(v));         // pasa el predecesor del mapa al vértice
+        }
+        return ordenLineal;
+    }
+
+    @Override
+    public List<Vertice> dijkstra(Vertice origen) {
+
+        // EXTRAER LA POSICION DEL VERTICE ORIGEN
+        int origenPos = vertices.indexOf(origen);
+
+        if(origenPos == -1){
+            throw new GrafoException("Vertice " + origen.getNombre() + " inexistente.");
+        }
+
+        // crear el shortest
+        Map<Vertice, Double> shortest = new HashMap<>();
+        Map<Vertice, Vertice> pred = new HashMap<>();
+
+
+        // crear cola
+        List<Vertice> colaPrioridades = new ArrayList<>(vertices);
+
+        // FOR PARA REESTABLECER/ ACONDICIONAR DEFAULT
+        for(Vertice actual : vertices){
+            shortest.put(actual, Double.POSITIVE_INFINITY);
+            pred.put(actual,null);
+        }
+        shortest.put(origen, 0.0);
+
+
+        // PASO 3 DEL PSEUDOCÓDIGO
+        while(!colaPrioridades.isEmpty()){
+
+            // EXTRAER EL VERTICE 1 COMO REFERENCIA
+            Vertice menor = colaPrioridades.get(0);
+            
+            // VALIDAR QUE EL VERTICE ACTUAL SEA MENOR AL DE LA REFERENCIA
+            // ES PARA TOMAR EL VERTICE CON EL ACUMULATIVO MENOR, EN LA I1 ES EL ORIGEN CON 0
+            for (Vertice actual : colaPrioridades) {
+                if (shortest.get(actual) < shortest.get(menor)) {
+                    menor = actual;
+                }
+            }
+            colaPrioridades.remove(menor);
+
+            // NO ITERA LAS ISLAS AISLADAS PORQUE DESDE EL ORIGEN NO PUEDO IR A ELLAS
+            if(shortest.get(menor) == Double.POSITIVE_INFINITY){
+                break;
+            }
+
+            // SACAR EL INDICE DEL MENOR DE VERTICES
+            int menorPos = vertices.indexOf(menor);
+
+            for(int vecinoPos = 0; vecinoPos < vertices.size(); vecinoPos++){
+
+                double pesoArista = matriz[menorPos][vecinoPos];
+
+                if (pesoArista != Double.POSITIVE_INFINITY && menorPos != vecinoPos) {
+                    Vertice v = vertices.get(vecinoPos);
+                    relajar(menor, v, shortest, pred);
+                }
+            }
+        }
+        // para regresar la lista
+        List<Vertice> resultado = new ArrayList<>();
+        for (Vertice actual : vertices) {
+            actual.setCostoMinimo(shortest.get(actual));
+            actual.setPredecesor(pred.get(actual));
+            resultado.add(actual);
+        }
+        return resultado;
+    }
+
+    // Auxiliares
+
+    private void relajar(Vertice origen, Vertice destino, Map<Vertice, Double> shortest, Map<Vertice, Vertice> pred){
+
+        // obtener los indices desde la matriz
+        Double pesoArista = obtenerCosto(origen, destino);
+
+        if(shortest.get(origen) + pesoArista < shortest.get(destino)){
+            shortest.put(destino, shortest.get(origen) + pesoArista);
+            pred.put(destino, origen);
+        }
+
+    }
+
+    private Double obtenerCosto(Vertice origen, Vertice destino){
+        // obtener posiciones
+        int origenPos = vertices.indexOf(origen);
+        int destinoPos = vertices.indexOf(destino);
+
+        return this.matriz[origenPos][destinoPos];
+    }
 }

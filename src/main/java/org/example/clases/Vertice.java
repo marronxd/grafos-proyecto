@@ -20,6 +20,9 @@ public class Vertice {
     private int tiempoEntrada;
     private int tiempoSalida;
 
+    // atributo agregado para el costo mínimo
+    private double costoMinimo;
+
     public Vertice(String nombre) {
         this.nombre = nombre;
         reiniciar();
@@ -34,6 +37,7 @@ public class Vertice {
         this.distancia = -1;
         this.tiempoEntrada = 0;
         this.tiempoSalida = 0;
+        this.costoMinimo = Double.POSITIVE_INFINITY;
     }
 
     public String getNombre() {
@@ -78,6 +82,14 @@ public class Vertice {
 
     public void setTiempoSalida(int tiempoSalida) {
         this.tiempoSalida = tiempoSalida;
+    }
+
+    public double getCostoMinimo() {
+        return costoMinimo;
+    }
+
+    public void setCostoMinimo(double costoMinimo) {
+        this.costoMinimo = costoMinimo;
     }
 
     @Override

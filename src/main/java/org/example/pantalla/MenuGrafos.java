@@ -6,6 +6,7 @@ import org.example.clases.Vertice;
 import org.example.interfaz.IGrafo;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -84,12 +85,14 @@ public class MenuGrafos {
         System.out.println("13. Búsqueda por anchura (BFS");
         System.out.println("14. Búsqueda por profundidad (DFS)");
         System.out.println("15. Ordenamiento Topológico.");
+        System.out.println("16. Camino más corto.");
+        System.out.println("17. Dijsktra.");
         System.out.println(" 0. Salir");
     }
 
     private void ejecutar(int opcion) {
         // Las opciones 4 a 12 necesitan un grafo activo
-        if (opcion >= 4 && opcion <= 14 && activo == null) {
+        if (opcion >= 4 && opcion <= 16 && activo == null) {
             System.out.println("Primero crea o selecciona un grafo (opciones 1 o 2).");
             return;
         }
@@ -110,6 +113,8 @@ public class MenuGrafos {
             case 13 -> ejecutarBusquedaAnchura();
             case 14 -> ejecutarBusquedaProfundidad();
             case 15 -> ejecutarOrdenTopologico();
+            case 16 -> ejecutarCaminoMasCorto();
+            case 17 -> ejecutarDijsktra();
             case 0 -> { }
             default -> System.out.println("Opción no válida.");
         }
@@ -319,6 +324,56 @@ public class MenuGrafos {
             System.out.println("Error: " + e.getMessage());
         }
     }
+
+    // ------------------------------------------------------------------
+    // DAG caminos mas cortos
+    // ------------------------------------------------------------------
+
+    private void ejecutarCaminoMasCorto() {
+        Vertice origen = leerVertice("Vértice origen: ");
+        List<Vertice> resultado = activo.grafo.caminoMasCorto(origen);
+
+        System.out.println("Caminos más cortos desde " + origen.getNombre() + ":");
+        System.out.println();
+        System.out.printf("%-10s %-10s %-12s %s%n", "Vértice", "Costo", "Predecesor", "Camino");
+
+        for (Vertice v : resultado) {
+            boolean alcanzable = v.getCostoMinimo() != Double.POSITIVE_INFINITY;
+            String costo = alcanzable ? String.format("%.2f", v.getCostoMinimo()) : "∞";
+            String camino = alcanzable ? caminoHasta(v) : "-";
+
+            System.out.printf("%-10s %-10s %-12s %s%n",
+                    v.getNombre(), costo, nombrePredecesor(v), camino);
+        }
+    }
+
+    private void ejecutarDijsktra() {
+        Vertice origen = leerVertice("Vértice origen: ");
+        List<Vertice> resultado = activo.grafo.dijkstra(origen);
+
+        System.out.println("Caminos más cortos (Dijkstra) desde " + origen.getNombre() + ":");
+        System.out.println();
+        System.out.printf("%-10s %-10s %-12s %s%n", "Vértice", "Costo", "Predecesor", "Camino");
+
+        for (Vertice v : resultado) {
+            boolean alcanzable = v.getCostoMinimo() != Double.POSITIVE_INFINITY;
+            String costo = alcanzable ? String.format("%.2f", v.getCostoMinimo()) : "∞";
+            String camino = alcanzable ? caminoHasta(v) : "-";
+
+            System.out.printf("%-10s %-10s %-12s %s%n",
+                    v.getNombre(), costo, nombrePredecesor(v), camino);
+        }
+    }
+
+    /** Arma el camino origen -> ... -> destino siguiendo los predecesores hacia atrás. */
+    private String caminoHasta(Vertice destino) {
+        LinkedList<String> nombres = new LinkedList<>();
+        for (Vertice v = destino; v != null; v = v.getPredecesor()) {
+            nombres.addFirst(v.getNombre());
+        }
+        return String.join(" -> ", nombres);
+    }
+
 
     // ------------------------------------------------------------------
     // Lectura segura desde el teclado

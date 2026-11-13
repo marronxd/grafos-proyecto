@@ -4,7 +4,11 @@ import org.example.clases.Vertice;
 
 import java.util.List;
 
-public interface IOrdenTopologico {
+public interface IDAG {
 
     List<Vertice> ordenTopologico();
+
+    List<Vertice> caminoMasCorto(Vertice origen);
+
+    List<Vertice> dijkstra(Vertice origen);
 }
